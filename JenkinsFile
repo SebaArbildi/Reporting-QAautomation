@@ -1,0 +1,25 @@
+pipeline {
+	agent { label 'api' }
+    parameters {
+                string defaultValue: 'Run_Parallel', description: 'POM Profile to be run', name: 'PROFILE'
+                string defaultValue: '10.20.2.83/', description: 'Server address', name:'SERVER_ADDRESS'
+            }
+	stages {
+		stage ('build') {
+			steps {
+				sh 'mvn -DskipTests clean package'
+			}
+		}
+		stage ('test') {
+			steps {
+				sh "mvn test -P $params.PROFILE -DSERVER_ADDRESS=$params.SERVER_ADDRESS"
+			}
+			post {
+            	always {
+                    cucumber fileIncludePattern: '**/*.json', jsonReportDirectory: 'target/surefire-reports/', parallelTesting: true, trendsLimit: 48
+                    cleanWs()
+                }
+            }
+		}
+	}
+}

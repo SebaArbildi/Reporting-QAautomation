@@ -1,0 +1,11 @@
+@api
+Feature: file-controller
+
+  Background:
+    * callonce read('classpath:features/pr-reports/file/fileUtil.feature')
+
+  Scenario: get TFM-JRNL DELETIONS and compare it with instapay report
+    Given def getReport = call read('classpath:features/pr-reports/reportJob/operations/getSpecificReportJob.feature') {reportName: 'TFM-JRNL DELETIONS'}
+    When def getFile = call read('classpath:features/pr-reports/file/operations/compareFile.feature') {fileName: #(getReport.report.name), type: 'PDF'}
+    Then match getFile.responseStatus == 200
+    And match getFile.apiReport == getFile.instapayReport
